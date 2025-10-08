@@ -9,7 +9,11 @@ class PublisherController {
       const publisher = new Publisher(req.body);
       await publisher.save();
 
-      return res.send({ message: 'Publisher created successfully'});
+      return res.send({ 
+        status: 'success',
+        message: 'Tạo thành công',
+        data: publisher,
+      });
 
     } catch(error) {
       console.log(error);
@@ -55,8 +59,13 @@ class PublisherController {
   async findAll(req, res, next) {
     try {
       const publishers = await Publisher.find().lean();
-      return res.send(publishers);
 
+      return res.send({
+        status: "success",
+        message: "Lấy danh sách thành công",
+        data: publishers,
+      });
+      
     } catch(error) {
       console.log(error);
       return next(new ApiError(500, 'An error occurred while retrieving publishers'));

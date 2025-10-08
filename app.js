@@ -39,6 +39,7 @@ app.use((req, res, next) => {
 });
 
 // Define error-handling middleware last
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   return res.status(err.statusCode || 500).json({
     status: "error",

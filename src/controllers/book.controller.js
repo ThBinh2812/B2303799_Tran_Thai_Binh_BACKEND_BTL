@@ -9,13 +9,12 @@ async function generateBookCode() {
     .filter((n) => !isNaN(n))
     .sort((a, b) => a - b);
 
-  let nextNumber = 1;
+  let nextNumber = usedNumbers.length + 1;
   for (let i = 0; i < usedNumbers.length; i++) {
     if (usedNumbers[i] !== i + 1) {
       nextNumber = i + 1;
       break;
     }
-    nextNumber = usedNumbers.length + 1;
   }
   return `B${nextNumber.toString().padStart(3, "0")}`;
 }

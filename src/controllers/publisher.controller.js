@@ -1,12 +1,43 @@
 import Publisher from "../models/publisher.model.js";
 import ApiError from "../api_error.js";
 
+async function generatePublisherCode() {
+  const publishers = await Publisher.find({}, "MANXB").lean();
+
+  const codes = publishers.map((p) => p.MANXB).sort();
+
+  const usedNumbers = codes
+    .map((code) => parseInt(code.replace("NXB", ""), 10))
+    .filter((n) => !isNaN(n))
+    .sort((a, b) => a - b);
+
+  let nextNumber = usedNumbers.length + 1;
+  for (let i = 0; i < usedNumbers.length; i++) {
+    if (usedNumbers[i] !== i + 1) {
+      nextNumber = i + 1;
+      break;
+    }
+  }
+
+  return `NXB${nextNumber.toString().padStart(3, "0")}`;
+}
+
 class PublisherController {
 
   // [POST] /api/publishers
   async create(req, res, next) {
     try {
-      const publisher = new Publisher(req.body);
+      const MANXB = await generatePublisherCode();
+
+      const existed = await Publisher.findOne({ MANXB });
+      if (existed) {
+        return next(new ApiError(400, "Mã nhà xuất bản đã tồn tại"));
+      }
+
+      const publisher = new Publisher({
+        MANXB,
+        ...req.body,
+      });
       await publisher.save();
 
       return res.send({ 
@@ -30,7 +61,11 @@ class PublisherController {
         return next(new ApiError(404, 'Publisher not found'));
       };
 
-      return res.send({ message: 'Publisher updated successfully'});
+      return res.send({
+        status: "success",
+        message: "Cập nhật nhà xuất bản thành công",
+        data: await Publisher.findOne({ MANXB: req.params.publisherId }),
+      });
 
     } catch(error) {
       console.log(error);
@@ -81,7 +116,11 @@ class PublisherController {
         return next(new ApiError(404, 'Publisher not found'));
       };
 
-      return res.send({ message: 'Publisher deleted successfully' });
+      return res.send({
+        status: "success",
+        message: "Xóa nhà xuất bản thành công",
+        data: null,
+      });
 
     } catch(error) {
       console.log(error);
@@ -103,4 +142,4 @@ class PublisherController {
 
 };
 
-export default new PublisherController;
+export default new PublisherController();

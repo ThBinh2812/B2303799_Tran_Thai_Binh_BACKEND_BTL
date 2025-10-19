@@ -19,7 +19,7 @@ class ReaderController {
     try {
       const MADOCGIA = await generateReaderCode();
 
-      // Kiểm tra trùng mã (phòng trường hợp gửi từ client)
+      // Kiểm tra trùng mã (Khi tạo bằng postman)
       const existed = await Reader.findOne({ MADOCGIA: req.body.MADOCGIA });
       if (existed) {
         return next(new ApiError(400, "Mã độc giả đã tồn tại"));

@@ -7,6 +7,7 @@ import bookRouter from './src/routes/book.route.js';
 import bookLoanRouter from './src/routes/bookLoan.route.js';
 import readerRouter from './src/routes/reader.route.js';
 import employeeRouter from './src/routes/employee.route.js';
+import authRouter from './src/routes/auth.route.js';
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -27,6 +28,7 @@ app.use('/api/books', bookRouter);
 app.use('/api/bookLoans', bookLoanRouter);
 app.use('/api/readers', readerRouter);
 app.use('/api/employees', employeeRouter);
+app.use('/api/auth', authRouter);
 
 // ***
 app.get('/', (req, res) => {

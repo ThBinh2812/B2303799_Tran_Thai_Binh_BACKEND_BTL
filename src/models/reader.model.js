@@ -20,13 +20,17 @@ const readerSchema = new Schema({
     type: String,
   },
   PHAI: {
-    type: Boolean,
+    type: String,
   },
   DIACHI: {
     type: String,
   },
   DIENTHOAI: {
     type: String,
+  },
+  PASSWORD: {
+    type: String,
+    required: true,
   }
 }, {
   optimisticConcurrency: true,

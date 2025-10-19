@@ -9,15 +9,10 @@ async function generateBookCode() {
     .filter((n) => !isNaN(n))
     .sort((a, b) => a - b);
 
-  let nextNumber = usedNumbers.length + 1;
-  for (let i = 0; i < usedNumbers.length; i++) {
-    if (usedNumbers[i] !== i + 1) {
-      nextNumber = i + 1;
-      break;
-    }
-  }
+  let nextNumber = usedNumbers.length > 0 ? Math.max(...usedNumbers) + 1 : 1;
+
   return `B${nextNumber.toString().padStart(3, "0")}`;
-}
+};
 
 class BookController {
 

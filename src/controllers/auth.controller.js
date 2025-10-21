@@ -21,16 +21,14 @@ class AuthController {
   // [POST] /auth/register
   async register(req, res, next) {
     try {
-
       const MADOCGIA = await generateReaderCode();
       const { HOLOT, TEN, NGAYSINH, PHAI, DIACHI, DIENTHOAI, PASSWORD } =
         req.body;
 
       // Kiểm tra số điện thoại đã tồn tại chưa
       const existing = await Reader.findOne({ DIENTHOAI });
-      if (existing) return next(new ApiError(400, "Số điện thoại đã tồn tại."));
+      if (existing) return next(new ApiError(404, "Số điện thoại đã tồn tại."));
 
-      // Mã hoá mật khẩu
       const hashedPassword = await bcrypt.hash(PASSWORD, 10);
 
       const newReader = new Reader({
@@ -65,12 +63,14 @@ class AuthController {
       // Tìm người dùng theo số điện thoại
       const reader = await Reader.findOne({ DIENTHOAI });
       if (!reader)
-        return next(new ApiError(400, "Số điện thoại không tồn tại."));
+        return next(new ApiError(404, "Số điện thoại không tồn tại."));
 
       // So sánh mật khẩu
       const validPassword = await bcrypt.compare(PASSWORD, reader.PASSWORD);
       if (!validPassword)
-        return next(new ApiError(400, "Mật khẩu không chính xác."));
+        return next(
+          new ApiError(400, "Tài khoản hoặc mật khẩu không chính xác.")
+        );
 
       // Tạo JWT token
       const token = jwt.sign(
@@ -79,11 +79,14 @@ class AuthController {
         { expiresIn: "2h" }
       );
 
+      const readerData = reader.toObject();
+      delete readerData.PASSWORD;
+
       return res.send({
         status: "success",
         message: "Đăng nhập thành công!",
         data: {
-          reader,
+          reader: readerData,
           token,
         },
       });

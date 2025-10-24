@@ -43,7 +43,13 @@ const bookSchema = new Schema(
     cover: {
       type: String,
       required: false
-    }
+    },
+    THELOAI: [
+      {
+        type: String,
+        required: true,
+      }
+    ]
   },
   {
     optimisticConcurrency: true,

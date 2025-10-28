@@ -42,18 +42,21 @@ class BookController {
 
       const categories = await Category.find(
         { MATHELOAI: { $in: book.THELOAI || [] } },
-        "MATHELOAI TENTHELOAI -_id"
+        "MATHELOAI TENTHELOAI"
       ).lean();
 
-      const bookWithCategories = {
+      const bookWithNames = {
         ...book.toObject(),
-        THELOAI_NAMES: categories.map((c) => c.TENTHELOAI),
+        THELOAI: categories.map((c) => ({
+          MATHELOAI: c.MATHELOAI,
+          TENTHELOAI: c.TENTHELOAI,
+        })),
       };
 
       return res.send({
         status: "success",
         message: "Tạo sách thành công!",
-        data: bookWithCategories,
+        data: bookWithNames,
       });
     } catch (error) {
       console.error(error);
@@ -86,22 +89,56 @@ class BookController {
 
       const categories = await Category.find(
         { MATHELOAI: { $in: updatedBook.THELOAI || [] } },
-        "MATHELOAI TENTHELOAI -_id"
+        "MATHELOAI TENTHELOAI"
       ).lean();
 
-      const bookWithCategories = {
+      const bookWithNames = {
         ...updatedBook.toObject(),
-        THELOAI_NAMES: categories.map((c) => c.TENTHELOAI),
+        THELOAI: categories.map((c) => ({
+          MATHELOAI: c.MATHELOAI,
+          TENTHELOAI: c.TENTHELOAI,
+        })),
       };
 
       return res.send({
         status: "success",
         message: "Cập nhật thành công!",
-        data: bookWithCategories,
+        data: bookWithNames,
       });
     } catch (error) {
       console.error(error);
       return next(new ApiError(500, "Lỗi khi cập nhật sách"));
+    }
+  }
+
+  // [GET] /api/books
+  async findAll(req, res, next) {
+    try {
+      const books = await Book.find().lean();
+      const allCategories = await Category.find(
+        {},
+        "MATHELOAI TENTHELOAI"
+      ).lean();
+      const categoryMap = Object.fromEntries(
+        allCategories.map((c) => [c.MATHELOAI, c.TENTHELOAI])
+      );
+
+      const booksWithNames = books.map((b) => ({
+        ...b,
+        THELOAI: (b.THELOAI || []).map((id) => ({
+          MATHELOAI: id,
+          TENTHELOAI: categoryMap[id] || id,
+        })),
+      }));
+
+      return res.send({
+        status: "success",
+        message: "Lấy danh sách sách thành công!",
+        data: booksWithNames,
+      });
+    } catch (error) {
+      console.error(error);
+      return next(new ApiError(500, "Lỗi khi lấy danh sách sách"));
     }
   }
 
@@ -113,10 +150,13 @@ class BookController {
 
       const categories = await Category.find(
         { MATHELOAI: { $in: book.THELOAI || [] } },
-        "MATHELOAI TENTHELOAI -_id"
+        "MATHELOAI TENTHELOAI"
       ).lean();
 
-      book.THELOAI_NAMES = categories.map((c) => c.TENTHELOAI);
+      book.THELOAI = categories.map((c) => ({
+        MATHELOAI: c.MATHELOAI,
+        TENTHELOAI: c.TENTHELOAI,
+      }));
 
       return res.send({
         status: "success",
@@ -129,64 +169,37 @@ class BookController {
     }
   }
 
-  // [GET] /api/books
-  async findAll(req, res, next) {
+  // [DELETE] /api/books
+  async deleteAll(req, res, next) {
     try {
-      const books = await Book.find().lean();
-      const allCategories = await Category.find(
-        {},
-        "MATHELOAI TENTHELOAI"
-      ).lean();
-
-      const categoryMap = Object.fromEntries(
-        allCategories.map((c) => [c.MATHELOAI, c.TENTHELOAI])
-      );
-
-      const booksWithCategoryNames = books.map((b) => ({
-        ...b,
-        THELOAI_NAMES: (b.THELOAI || []).map((id) => categoryMap[id] || id),
-      }));
-
+      await Book.deleteMany({});
       return res.send({
         status: "success",
-        message: "Lấy danh sách sách thành công!",
-        data: booksWithCategoryNames,
+        message: "Đã xóa toàn bộ sách!",
       });
     } catch (error) {
       console.error(error);
-      return next(new ApiError(500, "Lỗi khi lấy danh sách sách"));
+      return next(new ApiError(500, "Lỗi khi xóa toàn bộ sách"));
     }
   }
 
   // [DELETE] /api/books/:bookId
   async delete(req, res, next) {
     try {
-      const book = await Book.findOne({ MASACH: req.params.bookId });
-      if (!book) return next(new ApiError(404, "Sách không tồn tại"));
-
-      await Book.deleteOne({ MASACH: req.params.bookId });
+      const deletedBook = await Book.findOneAndDelete({
+        MASACH: req.params.bookId,
+      });
+      if (!deletedBook)
+        return next(new ApiError(404, "Không tìm thấy sách để xóa"));
 
       return res.send({
         status: "success",
-        message: "Xóa thành công!",
+        message: "Xóa sách thành công!",
+        data: deletedBook,
       });
     } catch (error) {
       console.error(error);
       return next(new ApiError(500, "Lỗi khi xóa sách"));
-    }
-  }
-
-  // [DELETE] /api/books
-  async deleteAll(req, res, next) {
-    try {
-      const result = await Book.deleteMany({});
-      return res.send({
-        status: "success",
-        message: `${result.deletedCount} sách đã được xóa`,
-      });
-    } catch (error) {
-      console.error(error);
-      return next(new ApiError(500, "Lỗi khi xóa tất cả sách"));
     }
   }
 }

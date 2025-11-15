@@ -76,7 +76,11 @@ class PublisherController {
         return next(new ApiError(404, 'Publisher not found'));
       };
 
-      return res.send(publisher);
+      return res.send({
+        status: "success",
+        message: "Lấy nhà xuất bản thành công",
+        data: publisher,
+      });
 
     } catch(error) {
       console.log(error);

@@ -1,60 +1,54 @@
 import mongoose from "mongoose";
-
 const Schema = mongoose.Schema;
-
 const bookSchema = new Schema(
   {
-    MASACH: {
-      type: String,
-      required: true,
-      unique: true,
+    MASACH: { 
+      type: String, 
+      required: true, 
+      unique: true 
     },
-    TENSACH: {
-      type: String,
-      required: true,
+    TENSACH: { 
+      type: String, 
+      required: true 
     },
-    DONGIA: {
+    DONGIA: { 
+      type: Number, 
+      required: true 
+    },
+    SOQUYEN: { 
       type: Number,
-      required: true,
+      required: true 
     },
-    SOQUYEN: {
-      type: Number,
-      required: true,
+    CONLAI: { 
+      type: Number, 
+      required: true 
     },
-    CONLAI: {
-      type: Number,
-      required: true,
+    NAMXUATBAN: { 
+      type: Number, 
+      required: true 
     },
-    NAMXUATBAN: {
-      type: Number,
-      required: true,
+    MANXB: { 
+      type: String, 
+      required: true 
     },
-    MANXB: {
-      type: String,
-      required: true,
+    TACGIA: { 
+      type: String, 
+      required: true 
     },
-    TACGIA: {
-      type: String,
-      required: true,
+    MOTA: { 
+      type: String 
     },
-    MOTA: {
-      type: String,
-    },
-    cover: {
-      type: String,
-      required: false
+    cover: { 
+      type: String, 
+      required: false 
     },
     THELOAI: [
-      {
+      { 
         type: String,
-        required: true,
+        required: true 
       }
-    ]
+    ],
   },
-  {
-    optimisticConcurrency: true,
-    timestamps: true,
-  }
+  { optimisticConcurrency: true, timestamps: true }
 );
-
-export default mongoose.model('Book', bookSchema, 'books');
+export default mongoose.model("Book", bookSchema, "books");

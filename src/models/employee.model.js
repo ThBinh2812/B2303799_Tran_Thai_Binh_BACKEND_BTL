@@ -12,7 +12,7 @@ const EmployeeSchema = new Schema({
     type: String,
     required: true,
   },
-  Password: {
+  PASSWORD: {
     type: String,
     required: true,
   },

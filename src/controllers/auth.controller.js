@@ -1,4 +1,5 @@
 import Reader from "../models/reader.model.js";
+import Employee from "../models/employee.model.js";
 import ApiError from "../api_error.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -95,6 +96,49 @@ class AuthController {
       return next(new ApiError(500, "Lỗi trong quá trình đăng nhập."));
     }
   }
+
+  // [POST] /auth/loginAdmin
+  async loginAdmin(req, res, next) {
+    try {
+      const { MSNV, PASSWORD } = req.body;
+
+      // Tìm nhân viên theo mã số nhân viên
+      const admin = await Employee.findOne({ MSNV });
+      if (!admin)
+        return next(new ApiError(404, "Mã số nhân viên không tồn tại."));
+
+      // So sánh mật khẩu
+      const validPassword = await bcrypt.compare(PASSWORD, admin.PASSWORD);
+      if (!validPassword)
+        return next(
+          new ApiError(400, "Tài khoản hoặc mật khẩu không chính xác.")
+        );
+
+      // Tạo JWT token
+      const token = jwt.sign(
+        { id: admin._id, MSNV: admin.MSNV, role: "admin" },
+        JWT_SECRET,
+        { expiresIn: "2h" }
+      );
+
+      const adminData = admin.toObject();
+      delete adminData.PASSWORD;
+
+      return res.send({
+        status: "success",
+        message: "Đăng nhập thành công!",
+        data: {
+          admin: adminData,
+          token,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return next(new ApiError(500, "Lỗi trong quá trình đăng nhập."));
+    }
+  }
 }
+
+
 
 export default new AuthController();

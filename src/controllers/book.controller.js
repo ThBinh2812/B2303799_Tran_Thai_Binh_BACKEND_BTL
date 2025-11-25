@@ -1,4 +1,5 @@
 import Book from "../models/book.model.js";
+import BookLoan from "../models/bookLoan.model.js";
 import Category from "../models/category.model.js";
 import ApiError from "../api_error.js";
 
@@ -33,9 +34,12 @@ class BookController {
         }
       }
 
+      const soquyen = Number(req.body.SOQUYEN) || 0;
+
       const book = new Book({
         ...req.body,
         MASACH,
+        CONLAI: soquyen,
         cover: coverPath,
       });
       await book.save();
@@ -77,6 +81,33 @@ class BookController {
         } catch {
           req.body.THELOAI = [req.body.THELOAI];
         }
+      }
+
+      // Lấy thông tin sách hiện tại
+      const existingBook = await Book.findOne({
+        MASACH: req.params.bookId,
+      }).lean();
+      if (!existingBook) return next(new ApiError(404, "Không tìm thấy sách"));
+
+      // Đếm số phiếu mượn đang active
+      const currentlyBorrowed = await BookLoan.countDocuments({
+        MASACH: req.params.bookId,
+        STATUS: { $in: "borrowed" },
+      });
+
+      // Check số quyển
+      if (req.body.SOQUYEN !== undefined) {
+        const newQty = Number(req.body.SOQUYEN);
+
+        if (newQty < currentlyBorrowed) {
+          return next(
+            new ApiError(
+              400,
+              `Sách đang được mượn ${currentlyBorrowed} cuốn. Số lượng mới không thể nhỏ hơn số đang mượn.`
+            )
+          );
+        }
+        req.body.CONLAI = newQty - currentlyBorrowed;
       }
 
       const updatedBook = await Book.findOneAndUpdate(
@@ -186,9 +217,24 @@ class BookController {
   // [DELETE] /api/books/:bookId
   async delete(req, res, next) {
     try {
-      const deletedBook = await Book.findOneAndDelete({
-        MASACH: req.params.bookId,
+      const MASACH = req.params.bookId;
+
+      // Kiểm tra có đang được mượn không
+      const activeLoan = await BookLoan.findOne({
+        MASACH,
+        STATUS: { $in: ["pending", "borrowed", "overdue"] },
       });
+
+      if (activeLoan) {
+        return next(
+          new ApiError(
+            400,
+            "Không thể xóa sách vì đang có phiếu mượn hoặc đang chờ/đang quá hạn."
+          )
+        );
+      }
+
+      const deletedBook = await Book.findOneAndDelete({ MASACH });
       if (!deletedBook)
         return next(new ApiError(404, "Không tìm thấy sách để xóa"));
 
@@ -202,6 +248,6 @@ class BookController {
       return next(new ApiError(500, "Lỗi khi xóa sách"));
     }
   }
-}
+}  
 
 export default new BookController();

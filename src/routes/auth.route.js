@@ -5,6 +5,7 @@ const router = express.Router();
 
 router
   .post('/register', AuthController.register)
-  .post('/login', AuthController.login);
+  .post('/login', AuthController.login)
+  .post('/loginAdmin', AuthController.loginAdmin);
 
 export default router;

@@ -395,7 +395,7 @@ class BookLoanController {
         return next(
           new ApiError(
             400,
-            "Không thể xóa phiếu đang mượn. Vui lòng xử lý trả sách trước."
+            "Không thể xóa phiếu đang mượn. Vui lòng trả sách trước."
           )
         );
       }

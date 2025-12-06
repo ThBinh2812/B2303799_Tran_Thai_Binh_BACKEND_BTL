@@ -47,11 +47,11 @@ class BookLoanController {
         STATUS: { $in: ["pending", "borrowed"] },
       });
 
-      if (activeCount >= 3) {
+      if (activeCount >= 5) {
         return next(
           new ApiError(
             400,
-            "Độc giả đã mượn tối đa 3 cuốn. Hãy trả bớt trước khi mượn thêm."
+            "Độc giả đã mượn tối đa 5 cuốn. Hãy trả bớt trước khi mượn thêm."
           )
         );
       }

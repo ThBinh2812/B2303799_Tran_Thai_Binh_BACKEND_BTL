@@ -47,11 +47,26 @@ class BookLoanController {
         STATUS: { $in: ["pending", "borrowed"] },
       });
 
-      if (activeCount >= 5) {
+      if (activeCount >= 3) {
         return next(
           new ApiError(
             400,
-            "Độc giả đã mượn tối đa 5 cuốn. Hãy trả bớt trước khi mượn thêm."
+            "Độc giả đã mượn tối đa 3 cuốn. Hãy trả bớt trước khi mượn thêm."
+          )
+        );
+      }
+
+      // Kiểm tra nếu có cuốn nào quá hạn
+      const overdueCount = await BookLoan.countDocuments({
+        MADOCGIA,
+        STATUS: { $in: ["overdue"] },
+      });
+
+      if (overdueCount > 0) {
+        return next(
+          new ApiError(
+            400,
+            "Độc giả đang quá hạn 1 quyển sách, vui lòng trả sách trước khi mượn thêm."
           )
         );
       }
